@@ -15,6 +15,14 @@ public class User implements Serializable{
     public User() {
     }
 
+    public User(String name, String email, String pass, boolean active, boolean admin) {
+        this.name = name;
+        this.email = email;
+        this.pass = pass;
+        this.active = active;
+        this.admin = admin;
+    }
+
     public User(String name, String email, String pass) {
         this.name = name;
         this.email = email;
@@ -62,4 +70,10 @@ public class User implements Serializable{
     public void setAdmin(boolean admin) {
         this.admin = admin;
     }
+
+    @Override
+    public String toString() {
+        return "User{" + "name=" + name + ", email=" + email + ", pass=" + pass + ", active=" + active + ", admin=" + admin + '}';
+    }
+    
 }

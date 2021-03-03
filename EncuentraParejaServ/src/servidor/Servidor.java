@@ -12,9 +12,9 @@ public class Servidor {
 
     public static void main(String[] args){
         System.out.println("Servido arrancado...");
+        Mysql bd = new Mysql();
         try {
             ServerSocket ss = new ServerSocket(3500);
-            Mysql bd = new Mysql();
             bd.connect();
             Socket cliente;
             while (true) {
@@ -24,8 +24,8 @@ public class Servidor {
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
+            bd.disconnect();
         }
-
     }
 
     
