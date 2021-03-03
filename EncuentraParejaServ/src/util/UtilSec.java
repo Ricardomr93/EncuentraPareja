@@ -25,24 +25,45 @@ public class UtilSec {
         return hex;
     }
 
-    public static Object desencapsularUser(PrivateKey privK, SealedObject so) {
-        Object u = null;
-        try {
-            Cipher c = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            c.init(Cipher.DECRYPT_MODE, privK);
-            u = so.getObject(c);
-        } catch (IOException | ClassNotFoundException | InvalidKeyException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
-        }
-
-        return u;
-    }
-
-    public static SealedObject encapsularObjeto(PublicKey pubK, Object u) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException {
-        SealedObject so;
+       public static SealedObject encapsularObjeto(PublicKey pubK, Object u) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException {
+        SealedObject so = null;
         Cipher c = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         c.init(Cipher.ENCRYPT_MODE, pubK);
         so = new SealedObject((Serializable) u, c);
         return so;
+    }
+
+    public static Object desencriptarObjeto(SealedObject so, PrivateKey cPriv) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException {
+        Cipher c = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        c.init(Cipher.DECRYPT_MODE, cPriv);
+        Object obj = so.getObject(c);
+        return obj;
+    }
+
+    public static String encriptarTexto(String texto, String cifrado, SecretKey cs) {
+        String textocif = "";
+        try {
+            Cipher c = Cipher.getInstance(cifrado);
+            c.init(Cipher.ENCRYPT_MODE, cs);
+            byte[] textoPlano = texto.getBytes();
+            byte[] textoCifrado = c.doFinal(textoPlano);
+            textocif = new String(textoCifrado);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
+        }
+        return textocif;
+    }
+
+    public static String desecriptar(String texto, String cifrado, SecretKey clave) {
+        String textocif = "";
+        try {
+            Cipher c = Cipher.getInstance(cifrado);
+            c.init(Cipher.DECRYPT_MODE, clave);
+            byte[] textoCifrado = texto.getBytes();
+            byte[] Desencriptado = c.doFinal(textoCifrado);
+            textocif = new String(Desencriptado);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
+        }
+        return textocif;
     }
 
     public static KeyGenerator generarClave(String instance, int num) {
@@ -59,9 +80,9 @@ public class UtilSec {
         KeyPairGenerator keyGen = null;
         KeyPair par = null;
         try {
-            keyGen = KeyPairGenerator.getInstance("DSA");
+            keyGen = KeyPairGenerator.getInstance("RSA");
             SecureRandom numero = SecureRandom.getInstance("SHA1PRNG");
-            keyGen.initialize(1024, numero);
+            keyGen.initialize(2048, numero);
             par = keyGen.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
         }

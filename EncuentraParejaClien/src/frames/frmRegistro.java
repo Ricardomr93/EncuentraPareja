@@ -3,6 +3,10 @@ package frames;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
@@ -16,19 +20,20 @@ import util.*;
  * @author Ricardo
  */
 public class frmRegistro extends javax.swing.JFrame {
-
+    
     private InetAddress dir;
     private Socket servidor;
     private PrivateKey privK;
     private PublicKey pubK;
     private PublicKey pubKServ;
+    private frmLogin log;
 
     /**
      * Creates new form frmRegistro
      */
-    //public frmRegistro(PrivateKey privK, PublicKey pubK, Socket servidor, PublicKey pubKServ) { //TODO 
-    public frmRegistro() {
+    public frmRegistro(Socket servidor, PrivateKey privK, PublicKey pubK, PublicKey pubKServ, frmLogin log) {
         initComponents();
+        this.log = log;
         lblError.setText("");
         this.pubKServ = pubKServ;
         this.privK = privK;
@@ -245,59 +250,58 @@ public class frmRegistro extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAtrasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAtrasActionPerformed
-        frmLogin fl = new frmLogin();
-        fl.setVisible(true);
         this.setVisible(false);
+        log.setVisible(true);
     }//GEN-LAST:event_btnAtrasActionPerformed
 
     private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
         cleanFields();
+        lblError.setText("");
     }//GEN-LAST:event_btnLimpiarActionPerformed
 
     private void btnRegisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisActionPerformed
-       lblError.setText("");
+        lblError.setText("");
         JTextField[] txt = {txtEmail, txtNom, txtPass, txtRepPass};
-        if (!someEmpty(txt)) {
+        if (!UtilText.someEmpty(txt)) {
             if (UtilText.passEquals(txtPass, txtRepPass)) {
                 try {
                     sendUser();
                 } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException ex) {
-                    JOptionPane.showConfirmDialog(this, ex.getMessage());
+                    JOptionPane.showMessageDialog(this, ex.getMessage());
+                } catch (ClassNotFoundException | BadPaddingException ex) {
                 }
+            } else {
+                lblError.setText("Las contraseñas no coinciden");
             }
         } else {
             lblError.setText("Alguno de los campos está vacío");
         }
     }//GEN-LAST:event_btnRegisActionPerformed
-    private void cleanFields(){
+    private void cleanFields() {
         JTextField[] txt = {txtEmail, txtNom, txtPass, txtRepPass};
         for (JTextField text : txt) {
             text.setText("");
         }
-    }
-    private boolean someEmpty(JTextField[] txt) {
-        boolean empty = false;
-        for (int i = 0; i < txt.length && !empty; i++) {
-            if (UtilText.textFieldEmpty(txt[i])) {
-                empty = true;
-            }
-        }
-        return empty;
-    }
-
-    private void sendUser() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException {
+    }    
+    private void sendUser() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, ClassNotFoundException, BadPaddingException {
         UtilMsj.enviarInt(servidor, 2);
         User user = createUser();
         SealedObject so = UtilSec.encapsularObjeto(pubKServ, user);//con la clave publica del servidor
         UtilMsj.enviarObject(servidor, so);
-        System.out.println(so.toString());
-        JOptionPane.showMessageDialog(this, "Usario Registrado");
-        this.setVisible(false);
+        so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para evitar duplicados
+        boolean exist = (Boolean) UtilSec.desencriptarObjeto(so, privK);
+        if (exist) {
+            lblError.setText("El email ya está registrado");
+        } else {
+            JOptionPane.showMessageDialog(this, "Usario Registrado");
+            this.setVisible(false);
+            log.setVisible(true);
+        }
     }
-
+    
     private User createUser() throws NoSuchAlgorithmException {
         String nameUser = txtNom.getText().trim(), password = UtilSec.hashPass(txtPass.getText()), email = txtEmail.getText();
-        User user = new User(nameUser, password, email);
+        User user = new User(nameUser, email, password);
         return user;
     }
 
