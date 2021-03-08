@@ -25,12 +25,12 @@ public class UtilSec {
         }
         return hex;
     }
-        public static SealedObject encapsularObjeto(PublicKey pubK, User u) throws NoSuchAlgorithmException, NoSuchPaddingException, 
-                InvalidKeyException, IOException, IllegalBlockSizeException {
+
+    public static SealedObject encapsularObjeto(PublicKey pubK, Object object) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, IOException, IllegalBlockSizeException {
         Cipher c = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         c.init(Cipher.ENCRYPT_MODE, pubK);
-  
-        return new SealedObject(u, c);
+        return new SealedObject((Serializable) object, c);
     }
 
     public static Object desencriptarObjeto(SealedObject so, PrivateKey cPriv) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException {
@@ -82,7 +82,7 @@ public class UtilSec {
         try {
             keyGen = KeyPairGenerator.getInstance("RSA");
             SecureRandom numero = SecureRandom.getInstance("SHA1PRNG");
-            keyGen.initialize(2048, numero);
+            keyGen.initialize(5120, numero);
             par = keyGen.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
         }

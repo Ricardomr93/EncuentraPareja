@@ -1,5 +1,6 @@
-package frames;
+package frames.logreg;
 
+import frames.*;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
@@ -288,6 +289,7 @@ public final class frmLogin extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(frmLogin.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */

@@ -75,14 +75,13 @@ public class UtilSec {
         }
         return kg;
     }
-
     public static KeyPair generarclavePar() {
         KeyPairGenerator keyGen = null;
         KeyPair par = null;
         try {
             keyGen = KeyPairGenerator.getInstance("RSA");
             SecureRandom numero = SecureRandom.getInstance("SHA1PRNG");
-            keyGen.initialize(2048, numero);
+            keyGen.initialize(5120, numero);
             par = keyGen.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
         }

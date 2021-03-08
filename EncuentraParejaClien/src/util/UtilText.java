@@ -15,7 +15,7 @@ public class UtilText {
         return pass1.getText().equals(pass2.getText());
     }
 
-    public static boolean someEmpty(JTextField[] txt) {
+    public static boolean someTextEmpty(JTextField[] txt) {
         boolean empty = false;
         for (int i = 0; i < txt.length && !empty; i++) {
             if (textFieldEmpty(txt[i])) {
@@ -23,6 +23,12 @@ public class UtilText {
             }
         }
         return empty;
+    }
+    
+    public static void cleanFields(JTextField[] txt) {
+        for (JTextField text : txt) {
+            text.setText("");
+        }
     }
 
 }
