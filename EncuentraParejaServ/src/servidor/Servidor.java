@@ -15,7 +15,6 @@ public class Servidor {
         Mysql bd = new Mysql();
         try {
             ServerSocket ss = new ServerSocket(3500);
-            bd.connect();
             Socket cliente;
             while (true) {
                 cliente = ss.accept();
