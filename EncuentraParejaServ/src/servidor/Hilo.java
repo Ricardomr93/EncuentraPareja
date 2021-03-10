@@ -11,7 +11,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
-import javax.swing.table.DefaultTableModel;
 import model.Preferencia;
 import model.User;
 import util.*;
@@ -39,8 +38,7 @@ public class Hilo extends Thread {
         recMandPub();
         while (true) {
             try {
-                SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe la opcion encapsulado
-                int opc = (int) UtilSec.desencriptarObjeto(so, privK);
+                int opc = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibe la opcion LOG / REG
                 if (opc == Constantes.LOGIN) {
                     System.out.println(Constantes.LOGIN);
                     logUser();
@@ -59,8 +57,8 @@ public class Hilo extends Thread {
 
     private void logUser() {
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el usuario encapsulado
-            User u = (User) UtilSec.desencriptarObjeto(so, privK);
+            SealedObject so = null;
+            User u = (User) UtilMsj.recibirObjetoCifrado(cliente, privK);
             u = bd.selectUser(u.getEmail(), u.getPass());
             if (u != null) {
                 mandarUser(u);
@@ -78,11 +76,10 @@ public class Hilo extends Thread {
     }
 
     private void regUser() {
+        SealedObject so = null;
         try {
-            //TODO -> mirar como firmar y cifrar lo demás
             //quiere registrarse
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el objeto encapsulado
-            User u = (User) UtilSec.desencriptarObjeto(so, privK);
+            User u = (User) UtilMsj.recibirObjetoCifrado(cliente, privK);
             //inserta el usuario en la base de datos y devuelve si ha sido correcto o no
             boolean exist = bd.RegisUser(u.getName(), u.getEmail(), u.getPass());
             so = UtilSec.encapsularObjeto(pubKCAjena, exist);
@@ -116,8 +113,7 @@ public class Hilo extends Thread {
         boolean salir = false;
         while (!salir) {
             try {
-                SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dirá que ventana ha abierto
-                String msj = (String) UtilSec.desencriptarObjeto(so, privK);
+                String msj = (String) UtilMsj.recibirObjetoCifrado(cliente, privK);
                 switch (msj) {
                     case Constantes.SALIR:
                         System.out.println(msj);
@@ -165,10 +161,9 @@ public class Hilo extends Thread {
     private void listaAmigos() {
         try {
             //recibimos el id del usuario
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el id del usuario
-            int id = (int) UtilSec.desencriptarObjeto(so, privK);
+            int id = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibe el id del usuario
             ArrayList<User> uList = bd.listaAmigos(id);
-            so = UtilSec.encapsularObjeto(pubKCAjena, uList);
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, uList);
             UtilMsj.enviarObject(cliente, so);//le mandamos la lista de amigos que tiene
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
@@ -177,10 +172,9 @@ public class Hilo extends Thread {
 
     private void meGusta() {
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el id del que le gusta
-            int idAmigo = (int) UtilSec.desencriptarObjeto(so, privK);
-            so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el id del usuario
-            int idUser = (int) UtilSec.desencriptarObjeto(so, privK);
+            SealedObject so;
+            int idAmigo = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibe el id del que le gusta
+            int idUser = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibe el id del usuario
             if (bd.leGustas(idUser)) {
                 bd.nosGustamos(idUser);//actualiza a true con lo que son amigos y le mandas un msj para decir se gustan
                 so = UtilSec.encapsularObjeto(pubKCAjena, Constantes.RECIPROCO);
@@ -205,9 +199,9 @@ public class Hilo extends Thread {
     }
 
     private void mostrarprefs() {
+        SealedObject so;
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el usuario
-            User us = (User) UtilSec.desencriptarObjeto(so, privK);
+            User us = (User) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibe el usuario
             Preferencia p = bd.selectPrefes(us.getId());
             if (p != null) {
                 ArrayList<ArrayList<Object>> list = bd.mismasPref(us, p);
@@ -231,8 +225,7 @@ public class Hilo extends Thread {
             so = UtilSec.encapsularObjeto(pubKCAjena, interes);//le mandamos lista de interes
             UtilMsj.enviarObject(cliente, so);
             //una vez mandados los cmbbs espera a recibir la preferencia
-            so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un objeto preferencia
-            Preferencia pref = (Preferencia) UtilSec.desencriptarObjeto(so, privK);
+            Preferencia pref = (Preferencia) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un objeto preferencia
             boolean exists = bd.insertPrefs(pref);
             so = UtilSec.encapsularObjeto(pubKCAjena, exists);//le mandamos si existe
             UtilMsj.enviarObject(cliente, so);
@@ -242,9 +235,9 @@ public class Hilo extends Thread {
     }
 
     private void prefPrimera() {
+        SealedObject so;
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dira su id
-            int id = (int) UtilSec.desencriptarObjeto(so, privK);
+            int id = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un mensaje y le dira su id
             boolean tienePrefs = bd.primeraVez(id);
             so = UtilSec.encapsularObjeto(pubKCAjena, tienePrefs);//le mandamos si es la primera vez o no
             UtilMsj.enviarObject(cliente, so);
@@ -260,12 +253,10 @@ public class Hilo extends Thread {
             so = UtilSec.encapsularObjeto(pubKCAjena, listu);
             UtilMsj.enviarObject(cliente, so);//enviamos la arrayList
             System.out.println("Envia arraylist");
-            // TODO -> se queda esperando a recibir un mensaje de lo que quiere hacer
             //"ALTA","BAJA","MODIFICAR","CERRAR"
             Boolean cerrar = false;
             while (!cerrar) {
-                so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dirá que quiere hacer
-                String msj = (String) UtilSec.desencriptarObjeto(so, privK);
+                String msj = (String) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un mensaje y le dirá que quiere hacer
                 switch (msj) {
                     case Constantes.MOD_USER:
                         System.out.println(msj);
@@ -288,7 +279,7 @@ public class Hilo extends Thread {
                         activUser();
                         break;
                     case Constantes.CERRAR:
-                        System.out.println("Cierra ventana");
+                        System.out.println(msj);
                         cerrar = true;
                         break;
                     default:
@@ -300,11 +291,10 @@ public class Hilo extends Thread {
     }
 
     private void actDesAdminUser() {
+        SealedObject so;
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dira su id
-            int id = (int) UtilSec.desencriptarObjeto(so, privK);
-            so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un boolean de si quiere quitar/poner admin
-            boolean admin = (boolean) UtilSec.desencriptarObjeto(so, privK);
+            int id = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un mensaje y le dira su id
+            boolean admin = (boolean) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un boolean de si quiere quitar/poner admin
             boolean canModAdmin = bd.actDesAdminUser(id, admin);
             so = UtilSec.encapsularObjeto(pubKCAjena, canModAdmin);
             UtilMsj.enviarObject(cliente, so);//envia boolean
@@ -315,10 +305,9 @@ public class Hilo extends Thread {
 
     private void activUser() {
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un id para activar
-            int id = (int) UtilSec.desencriptarObjeto(so, privK);
+            int id = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un id para activar
             boolean canActivate = bd.activateUser(id);
-            so = UtilSec.encapsularObjeto(pubKCAjena, canActivate);
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, canActivate);
             UtilMsj.enviarObject(cliente, so);//envia boolean
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
@@ -327,10 +316,9 @@ public class Hilo extends Thread {
 
     private void delUser() {
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dirá que quiere hacer
-            int id = (int) UtilSec.desencriptarObjeto(so, privK);
+            int id = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un mensaje y le dirá que quiere hacer
             boolean canDelete = bd.deleteUser(id);
-            so = UtilSec.encapsularObjeto(pubKCAjena, canDelete);
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, canDelete);
             UtilMsj.enviarObject(cliente, so);//envia boolean
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
@@ -339,10 +327,9 @@ public class Hilo extends Thread {
 
     private void modUser() {
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dirá que quiere hacer
-            User user = (User) UtilSec.desencriptarObjeto(so, privK);
+            User user = (User) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un mensaje y le dirá que quiere hacer
             boolean exist = bd.updateUser(user);
-            so = UtilSec.encapsularObjeto(pubKCAjena, exist);
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, exist);
             UtilMsj.enviarObject(cliente, so);//envia boolean
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
@@ -351,10 +338,9 @@ public class Hilo extends Thread {
 
     private void insertUser() {
         try {
-            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dirá que quiere hacer
-            User user = (User) UtilSec.desencriptarObjeto(so, privK);
+            User user = (User) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un mensaje y le dirá que quiere hacer
             boolean exist = bd.AniadirUser(user);
-            so = UtilSec.encapsularObjeto(pubKCAjena, exist);
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, exist);
             UtilMsj.enviarObject(cliente, so);//envia boolean
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
             System.out.println(ex.getMessage());

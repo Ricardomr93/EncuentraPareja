@@ -2,20 +2,16 @@ package frames;
 
 import frames.admin.dialogAdmin;
 import frames.amigos.dialogListAmigos;
-import java.awt.Color;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import model.Preferencia;
@@ -118,8 +114,7 @@ public class frmMain extends javax.swing.JFrame {
             UtilMsj.enviarObject(servidor, so);
             so = UtilSec.encapsularObjeto(pubKAjena, id);//le mandamos el id para que compruebe si tiene prefs
             UtilMsj.enviarObject(servidor, so);
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para ver si ha ido correcto
-            boolean tienePrefs = (Boolean) UtilSec.desencriptarObjeto(so, privK);
+            boolean tienePrefs = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para ver si ha ido correcto
             if (!tienePrefs) {
                 dialogPreferencias dpref = new dialogPreferencias(this, true, id, servidor, privK, pubK, pubKAjena);
                 dpref.setVisible(true);
@@ -140,8 +135,7 @@ public class frmMain extends javax.swing.JFrame {
             UtilMsj.enviarObject(servidor, so);
             so = UtilSec.encapsularObjeto(pubKAjena, user);//le mandamos el usuario
             UtilMsj.enviarObject(servidor, so);
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe una lista de listas
-            ArrayList<ArrayList<Object>> list = (ArrayList<ArrayList<Object>>) UtilSec.desencriptarObjeto(so, privK);
+            ArrayList<ArrayList<Object>> list = (ArrayList<ArrayList<Object>>) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe una lista de listas
             //separamos las listas de una con usuarios y otra con las preferencias
             for (int i = 0; i < list.size(); i++) {
                 for (int j = 0; j < list.get(i).size(); j++) {
@@ -175,7 +169,6 @@ public class frmMain extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jOptionPane1 = new javax.swing.JOptionPane();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -195,7 +188,6 @@ public class frmMain extends javax.swing.JFrame {
         mnuAdmin = new javax.swing.JMenu();
         menuItemAdm = new javax.swing.JMenuItem();
         mnuEdit = new javax.swing.JMenu();
-        mnuPerfil = new javax.swing.JMenuItem();
         mnuPref = new javax.swing.JMenuItem();
         mnuSesion = new javax.swing.JMenu();
         mnuExit = new javax.swing.JMenuItem();
@@ -409,9 +401,6 @@ public class frmMain extends javax.swing.JFrame {
         mnuEdit.setBackground(new java.awt.Color(59, 44, 133));
         mnuEdit.setText("Editar");
 
-        mnuPerfil.setText("Perfil");
-        mnuEdit.add(mnuPerfil);
-
         mnuPref.setText("Preferencias");
         mnuEdit.add(mnuPref);
 
@@ -496,8 +485,7 @@ public class frmMain extends javax.swing.JFrame {
             so = UtilSec.encapsularObjeto(pubKAjena, user.getId());//le mandamos el ID del usuario
             UtilMsj.enviarObject(servidor, so);
             //recibirá un mensaje de feedback
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe una lista de listas
-            String respuesta = (String) UtilSec.desencriptarObjeto(so, privK);
+            String respuesta = (String) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe una lista de listas
             String msj = "";
             switch (respuesta) {
                 case Constantes.YAMIGOS:
@@ -529,7 +517,6 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JOptionPane jOptionPane1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
@@ -537,7 +524,6 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JMenu mnuAdmin;
     private javax.swing.JMenu mnuEdit;
     private javax.swing.JMenuItem mnuExit;
-    private javax.swing.JMenuItem mnuPerfil;
     private javax.swing.JMenuItem mnuPref;
     private javax.swing.JMenuBar mnuPrinci;
     private javax.swing.JMenu mnuSesion;

@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.security.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.*;
 import javax.swing.table.DefaultTableModel;
 import model.User;
@@ -195,8 +193,7 @@ public class dialogListAmigos extends javax.swing.JDialog {
             UtilMsj.enviarObject(servidor, so);
             so = UtilSec.encapsularObjeto(pubKAjena, user.getId());
             UtilMsj.enviarObject(servidor, so);//le mandamos el id
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe la lista de usuarios
-            uList = (ArrayList<User>) UtilSec.desencriptarObjeto(so, privK);
+            uList = (ArrayList<User>) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe la lista de usuarios
         } catch (IOException | ClassNotFoundException | InvalidKeyException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
         }
     }

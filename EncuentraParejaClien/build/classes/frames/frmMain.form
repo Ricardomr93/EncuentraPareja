@@ -2,8 +2,6 @@
 
 <Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
   <NonVisualComponents>
-    <Component class="javax.swing.JOptionPane" name="jOptionPane1">
-    </Component>
     <Container class="javax.swing.JMenuBar" name="jMenuBar1">
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout">
@@ -58,11 +56,6 @@
             <Property name="text" type="java.lang.String" value="Editar"/>
           </Properties>
           <SubComponents>
-            <MenuItem class="javax.swing.JMenuItem" name="mnuPerfil">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Perfil"/>
-              </Properties>
-            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="mnuPref">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Preferencias"/>
