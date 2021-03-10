@@ -43,12 +43,12 @@ public class dialogAdmin extends javax.swing.JDialog {
      */
     public dialogAdmin(java.awt.Frame parent, boolean modal, Socket servidor, PrivateKey privK, PublicKey pubK, PublicKey pubKAjena) {
         super(parent, modal);
+        initComponents();
         this.pubKAjena = pubKAjena;
         this.privK = privK;
         this.pubK = pubK;
         this.servidor = servidor;
         recibirArrayList();
-        initComponents();
         rellenarDatos();
     }
     

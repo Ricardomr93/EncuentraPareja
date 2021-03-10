@@ -113,11 +113,16 @@ public class Hilo extends Thread {
 
     private void ventanaPrincipal() {
         //se queda esperando de forma infinita llamadas de la ventana principal
-        while (true) {
+        boolean salir = false;
+        while (!salir) {
             try {
                 SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dirá que ventana ha abierto
                 String msj = (String) UtilSec.desencriptarObjeto(so, privK);
                 switch (msj) {
+                    case Constantes.SALIR:
+                        System.out.println(msj);
+                        salir = true;
+                        break;
                     case Constantes.ADMIN:
                         System.out.println(msj);
                         admin();
@@ -134,12 +139,68 @@ public class Hilo extends Thread {
                         System.out.println(msj);
                         mostrarprefs();
                         break;
+                    case Constantes.MANDA_MEGUSTA:
+                        System.out.println(msj);
+                        meGusta();
+                        break;
+                    case Constantes.LIST_AMIGOS:
+                        System.out.println(msj);
+                        listaAmigos();
+                        break;
                     default:
                         throw new AssertionError();
                 }
             } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
                 System.out.println(ex.getMessage());
             }
+        }
+        try {
+            cliente.close();
+            System.out.println("Se cierra el canal");
+        } catch (IOException e) {
+        }
+
+    }
+
+    private void listaAmigos() {
+        try {
+            //recibimos el id del usuario
+            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el id del usuario
+            int id = (int) UtilSec.desencriptarObjeto(so, privK);
+            ArrayList<User> uList = bd.listaAmigos(id);
+            so = UtilSec.encapsularObjeto(pubKCAjena, uList);
+            UtilMsj.enviarObject(cliente, so);//le mandamos la lista de amigos que tiene
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    private void meGusta() {
+        try {
+            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el id del que le gusta
+            int idAmigo = (int) UtilSec.desencriptarObjeto(so, privK);
+            so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el id del usuario
+            int idUser = (int) UtilSec.desencriptarObjeto(so, privK);
+            if (bd.leGustas(idUser)) {
+                bd.nosGustamos(idUser);//actualiza a true con lo que son amigos y le mandas un msj para decir se gustan
+                so = UtilSec.encapsularObjeto(pubKCAjena, Constantes.RECIPROCO);
+                UtilMsj.enviarObject(cliente, so);//le mandamos que se quieren ambos
+            } else if (!bd.sonAmigos(idUser)) { // si no son amigos aun
+                if (bd.yaMandoPeticion(idUser)) {
+                    so = UtilSec.encapsularObjeto(pubKCAjena, Constantes.YAMANDO);
+                    UtilMsj.enviarObject(cliente, so);//le mandamos que ha enviado su peticion
+                } else {
+                    //le manda una peticion
+                    bd.meGusta(idUser, idAmigo);
+                    so = UtilSec.encapsularObjeto(pubKCAjena, Constantes.MANDAPETI);
+                    UtilMsj.enviarObject(cliente, so);//le mandamos que ha enviado su peticion
+                }
+            } else {
+                so = UtilSec.encapsularObjeto(pubKCAjena, Constantes.YAMIGOS);
+                UtilMsj.enviarObject(cliente, so);//le manda que ya eran amigos   
+            }
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
         }
     }
 
