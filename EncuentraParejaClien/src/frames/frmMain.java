@@ -34,7 +34,7 @@ public class frmMain extends javax.swing.JFrame {
     private User user;
     private DefaultTableModel modelo;
     private ArrayList<User> uList;
-    private ArrayList<Preferencia> pList;
+    public static ArrayList<Preferencia> pList;
 
     /**
      * Creates new form frmMain
@@ -116,7 +116,9 @@ public class frmMain extends javax.swing.JFrame {
             UtilMsj.enviarObject(servidor, so);
             boolean tienePrefs = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para ver si ha ido correcto
             if (!tienePrefs) {
-                dialogPreferencias dpref = new dialogPreferencias(this, true, id, servidor, privK, pubK, pubKAjena);
+                so = UtilSec.encapsularObjeto(pubKAjena, Constantes.INS_PREF);//le mandamos la opcion
+                UtilMsj.enviarObject(servidor, so);
+                dialogPreferencias dpref = new dialogPreferencias(this, true, id, servidor, privK, pubK, pubKAjena, null);
                 dpref.setVisible(true);
             } else {
                 mostrarPrefs();
@@ -146,9 +148,7 @@ public class frmMain extends javax.swing.JFrame {
                     }
                 }
             }
-            if (uList.isEmpty()) {
-
-            }
+            System.out.println("tiene "+uList.size()+" afines");
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | ClassNotFoundException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
         }
@@ -402,6 +402,11 @@ public class frmMain extends javax.swing.JFrame {
         mnuEdit.setText("Editar");
 
         mnuPref.setText("Preferencias");
+        mnuPref.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuPrefActionPerformed(evt);
+            }
+        });
         mnuEdit.add(mnuPref);
 
         mnuPrinci.add(mnuEdit);
@@ -475,6 +480,22 @@ public class frmMain extends javax.swing.JFrame {
         dialogListAmigos dla = new dialogListAmigos(this, true, servidor, privK, pubK, pubKAjena, user);
         dla.setVisible(true);
     }//GEN-LAST:event_btnListAmigActionPerformed
+
+    private void mnuPrefActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuPrefActionPerformed
+        try {
+            int id = user.getId();
+            SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.EDIT_PREFE);//le mandamos la opcion
+            UtilMsj.enviarObject(servidor, so);
+            so = UtilSec.encapsularObjeto(pubKAjena, id);//le mandamos el id para que busque las prefs
+            UtilMsj.enviarObject(servidor, so);
+            Preferencia pref = (Preferencia) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe las preferencias
+            dialogPreferencias dpre = new dialogPreferencias(this, true, id, servidor, privK, pubK, pubKAjena, pref);
+            dpre.setVisible(true);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | ClassNotFoundException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+    }//GEN-LAST:event_mnuPrefActionPerformed
     private void meGusta(int f) {
         try {
             SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.MANDA_MEGUSTA);//le mandamos la opcion
