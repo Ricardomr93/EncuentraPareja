@@ -1,6 +1,8 @@
 package frames;
 
 import frames.admin.dialogAdmin;
+import frames.amigos.dialogListAmigos;
+import java.awt.Color;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
@@ -12,10 +14,14 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import model.Preferencia;
 import model.User;
 import util.Constantes;
+import util.Render;
 import util.UtilMsj;
 import util.UtilSec;
 
@@ -52,20 +58,22 @@ public class frmMain extends javax.swing.JFrame {
         this.user = user;
         isAdmin();
         primeraVez();
-
         imgApp.setIcon(new ImageIcon("src/images/Enpareja.png"));
         imgEnviar.setIcon(new ImageIcon("src/images/Send.png"));
         imgAmigo.setIcon(new ImageIcon("src/images/Love.png"));
     }
 
     private void rellenarDatos() {
+        tabPref.setDefaultRenderer(Object.class, new Render());
+        JButton btn = new JButton("");
+        btn.setIcon(new ImageIcon("src/images/heart.png"));
         modelo = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
 
             public Class<?> getColumnClass(int column) {
-                    return String.class;
+                return String.class;
             }
         };
 
@@ -76,8 +84,9 @@ public class frmMain extends javax.swing.JFrame {
         modelo.addColumn("Deportivo");
         modelo.addColumn("Politico");
         modelo.addColumn("Hijos");
-        modelo.addColumn("Interes");
-        Object[] obj = new Object[7];
+        modelo.addColumn("Intereses");
+        modelo.addColumn(" ");
+        Object[] obj = new Object[8];
         try {
             for (int i = 0; i < uList.size(); i++) {
                 obj[0] = uList.get(i).getName();
@@ -87,10 +96,12 @@ public class frmMain extends javax.swing.JFrame {
                 obj[4] = pList.get(i).getPoliticos();
                 obj[5] = pList.get(i).getTqhijos();
                 obj[6] = pList.get(i).getInteres();
+                obj[7] = btn;
                 //se almacena en la tabla los datos de la fila del array
                 modelo.addRow(obj);
             }
             tabPref.setModel(modelo);
+            tabPref.setRowHeight(30);
             tabPref.getTableHeader().setReorderingAllowed(false);
             tabPref.setRowSelectionAllowed(true);
             tabPref.setColumnSelectionAllowed(false);
@@ -127,7 +138,7 @@ public class frmMain extends javax.swing.JFrame {
             pList = new ArrayList<>();
             SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.MOSTR_PREFS);//le mandamos la opcion
             UtilMsj.enviarObject(servidor, so);
-            so = UtilSec.encapsularObjeto(pubKAjena, user);//le mandamos la opcion
+            so = UtilSec.encapsularObjeto(pubKAjena, user);//le mandamos el usuario
             UtilMsj.enviarObject(servidor, so);
             so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe una lista de listas
             ArrayList<ArrayList<Object>> list = (ArrayList<ArrayList<Object>>) UtilSec.desencriptarObjeto(so, privK);
@@ -140,6 +151,9 @@ public class frmMain extends javax.swing.JFrame {
                         pList.add((Preferencia) list.get(i).get(j));
                     }
                 }
+            }
+            if (uList.isEmpty()) {
+
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | ClassNotFoundException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
@@ -172,7 +186,7 @@ public class frmMain extends javax.swing.JFrame {
         btnEnviar = new javax.swing.JButton();
         pnlAmigos = new javax.swing.JPanel();
         imgAmigo = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
+        btnListAmig = new javax.swing.JButton();
         imgApp = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -208,11 +222,6 @@ public class frmMain extends javax.swing.JFrame {
         btnEnviar.setText("Mensajes");
         btnEnviar.setBorder(null);
         btnEnviar.setBorderPainted(false);
-        btnEnviar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEnviarActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout pnlEnviarLayout = new javax.swing.GroupLayout(pnlEnviar);
         pnlEnviar.setLayout(pnlEnviarLayout);
@@ -240,14 +249,14 @@ public class frmMain extends javax.swing.JFrame {
 
         imgAmigo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 
-        jButton3.setBackground(new java.awt.Color(59, 44, 133));
-        jButton3.setForeground(new java.awt.Color(255, 255, 255));
-        jButton3.setText("Lista amigos");
-        jButton3.setBorder(null);
-        jButton3.setBorderPainted(false);
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        btnListAmig.setBackground(new java.awt.Color(59, 44, 133));
+        btnListAmig.setForeground(new java.awt.Color(255, 255, 255));
+        btnListAmig.setText("Lista amigos");
+        btnListAmig.setBorder(null);
+        btnListAmig.setBorderPainted(false);
+        btnListAmig.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                btnListAmigActionPerformed(evt);
             }
         });
 
@@ -259,7 +268,7 @@ public class frmMain extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(imgAmigo, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnListAmig, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         pnlAmigosLayout.setVerticalGroup(
@@ -270,7 +279,7 @@ public class frmMain extends javax.swing.JFrame {
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlAmigosLayout.createSequentialGroup()
                 .addContainerGap(42, Short.MAX_VALUE)
-                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnListAmig, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(39, 39, 39))
         );
 
@@ -304,20 +313,20 @@ public class frmMain extends javax.swing.JFrame {
 
         tabPref.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Nombre", "Relacion", "Artistico", "Deportivo", "Politico", "Hijos", "Interes"
+                "Nombre", "Relacion", "Artistico", "Deportivo", "Politico", "Hijos", "Interes", ""
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -326,6 +335,11 @@ public class frmMain extends javax.swing.JFrame {
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
+            }
+        });
+        tabPref.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tabPrefMouseClicked(evt);
             }
         });
         jScrollPane1.setViewportView(tabPref);
@@ -337,6 +351,7 @@ public class frmMain extends javax.swing.JFrame {
             tabPref.getColumnModel().getColumn(4).setResizable(false);
             tabPref.getColumnModel().getColumn(5).setResizable(false);
             tabPref.getColumnModel().getColumn(6).setResizable(false);
+            tabPref.getColumnModel().getColumn(7).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -440,24 +455,77 @@ public class frmMain extends javax.swing.JFrame {
         da.setVisible(true);
     }//GEN-LAST:event_menuItemAdmActionPerformed
 
-    private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnEnviarActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton3ActionPerformed
-
     private void mnuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuExitActionPerformed
-        System.exit(0);
+        try {
+            SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.SALIR);//le mandamos la opcion
+            UtilMsj.enviarObject(servidor, so);
+            System.exit(0);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException ex) {
+            System.out.println(ex.getMessage());
+        }
     }//GEN-LAST:event_mnuExitActionPerformed
 
+    private void tabPrefMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabPrefMouseClicked
+        int c = tabPref.getColumnModel().getColumnIndexAtX(evt.getX());
+        int f = evt.getY() / tabPref.getRowHeight();
+
+        if (f < tabPref.getRowCount() && f >= 0 && c < tabPref.getColumnCount() && c >= 0) {
+            Object value = tabPref.getValueAt(f, c);
+            if (value instanceof JButton) {
+                ((JButton) value).doClick();
+                JButton but = (JButton) value;
+                int yes = JOptionPane.showConfirmDialog(this, "Te gusta esta persona?", "", JOptionPane.YES_NO_OPTION);
+                if (JOptionPane.OK_OPTION == yes) {
+                    meGusta(f);
+                }
+            }
+        }
+    }//GEN-LAST:event_tabPrefMouseClicked
+
+    private void btnListAmigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListAmigActionPerformed
+        dialogListAmigos dla = new dialogListAmigos(this, true, servidor, privK, pubK, pubKAjena, user);
+        dla.setVisible(true);
+    }//GEN-LAST:event_btnListAmigActionPerformed
+    private void meGusta(int f) {
+        try {
+            SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.MANDA_MEGUSTA);//le mandamos la opcion
+            UtilMsj.enviarObject(servidor, so);
+            int idAmigo = uList.get(f).getId();//cogemos el id de la fila que selecciona
+            so = UtilSec.encapsularObjeto(pubKAjena, idAmigo);//le mandamos el ID del amigo
+            UtilMsj.enviarObject(servidor, so);
+            so = UtilSec.encapsularObjeto(pubKAjena, user.getId());//le mandamos el ID del usuario
+            UtilMsj.enviarObject(servidor, so);
+            //recibirá un mensaje de feedback
+            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe una lista de listas
+            String respuesta = (String) UtilSec.desencriptarObjeto(so, privK);
+            String msj = "";
+            switch (respuesta) {
+                case Constantes.YAMIGOS:
+                    msj = "Ya erais amigos";
+                    break;
+                case Constantes.MANDAPETI:
+                    msj = "Me gusta enviado";
+                    break;
+                case Constantes.RECIPROCO:
+                    msj = "Ahora os gustais ambos";
+                    break;
+                case Constantes.YAMANDO:
+                    msj = "Ya mandaste una petición";
+                    break;
+                default:
+            }
+            JOptionPane.showMessageDialog(this, msj);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | ClassNotFoundException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEnviar;
+    private javax.swing.JButton btnListAmig;
     private javax.swing.JLabel imgAmigo;
     private javax.swing.JLabel imgApp;
     private javax.swing.JLabel imgEnviar;
-    private javax.swing.JButton jButton3;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;

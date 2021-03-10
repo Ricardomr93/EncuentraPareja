@@ -133,7 +133,7 @@ public class Mysql {
                 String email = res.getString("email");
                 activate = res.getBoolean("activado");
                 admin = res.getBoolean("admin");
-                
+
                 String relacion = res.getString("relacion");
                 Boolean artisticos = res.getBoolean("artisticos");
                 int deport = res.getInt("deportivos");
@@ -292,6 +292,124 @@ public class Mysql {
             disconnect();
         }
         return exist;
+    }
+
+    public synchronized boolean sonAmigos(int id) {
+        connect();
+        boolean amigos = true;
+        try {
+            String sql = "SELECT * FROM usuario u join amigo a on u.id = a.idEnv or u.id = a.idRec where u.id = ? and a.aceptado=true";
+            sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, id);
+            res = sentencia.executeQuery();
+            if (!res.next()) {
+                amigos = false;
+            }
+            sentencia.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            amigos = false;
+        } finally {
+            disconnect();
+        }
+        return amigos;
+    }
+    public synchronized boolean yaMandoPeticion(int id){
+         //compruebas que el id del usuario si ha recibido una peticion y aun no la aceptado
+        connect();
+        boolean yaMando = false;
+        try {
+            String sql = "SELECT * FROM usuario u join amigo a on u.id = a.idRec WHERE a.idEnv = ? and a.aceptado=false";
+            sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, id);
+            res = sentencia.executeQuery();
+            if (res.next()) {
+                yaMando = true;
+            }
+            sentencia.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            disconnect();
+        }
+        return yaMando;
+    }
+
+    public synchronized void meGusta(int idUser, int idAmigo) {
+        connect();
+        try {
+            String sql = "insert into amigo(idEnv,idRec,aceptado) values (?,?,False)";
+            sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, idUser);
+            sentencia.setInt(2, idAmigo);
+            sentencia.executeUpdate();
+            sentencia.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            disconnect();
+        }
+    }
+
+    public synchronized boolean leGustas(int id) {
+        //compruebas que el id del usuario si ha recibido una peticion y aun no la aceptado
+        connect();
+        boolean exist = true;
+        try {
+            String sql = "SELECT * FROM usuario u join amigo a on u.id = a.idRec WHERE u.id = ? and a.aceptado=false";
+            sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, id);
+            res = sentencia.executeQuery();
+            if (!res.next()) {
+                exist = false;
+            }
+            sentencia.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            exist = false;
+        } finally {
+            disconnect();
+        }
+        return exist;
+    }
+
+    public synchronized void nosGustamos(int id) {
+        connect();
+        try {
+            String sql = "update amigo set aceptado=true where idRec=?";
+            sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, id);
+            sentencia.executeUpdate();
+            sentencia.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            disconnect();
+        }
+    }
+
+    public synchronized ArrayList<User> listaAmigos(int id) {
+        ArrayList<User> uList = new ArrayList<>();
+        User u;
+        try {
+            connect();
+            String sql = "SELECT * FROM usuario u join amigo a on u.id = a.idEnv or u.id = a.idRec where u.id != ? and a.aceptado=true";
+            sentencia = conexion.prepareStatement(sql);
+            sentencia.setInt(1, id);
+            res = sentencia.executeQuery();
+            while (res.next()) {
+                String name = res.getString("nombre");
+                String email = res.getString("email");
+                u = new User(name, email, null);
+                uList.add(u);
+            }
+            res.close();
+            sentencia.close();
+        } catch (SQLException e) {
+        } finally {
+            disconnect();
+        }
+        return uList;
     }
 
     public synchronized boolean deleteUser(int id) {
