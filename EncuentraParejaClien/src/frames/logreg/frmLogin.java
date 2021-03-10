@@ -1,6 +1,6 @@
 package frames.logreg;
 
-import frames.*;
+import frames.main.frmMain;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;

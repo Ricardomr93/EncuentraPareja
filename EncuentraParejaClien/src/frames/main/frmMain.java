@@ -1,7 +1,8 @@
-package frames;
+package frames.main;
 
 import frames.admin.dialogAdmin;
 import frames.amigos.dialogListAmigos;
+import frames.prefs.dialogPreferencias;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
