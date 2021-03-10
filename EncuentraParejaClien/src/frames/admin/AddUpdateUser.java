@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.security.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -77,11 +75,7 @@ public class AddUpdateUser extends javax.swing.JDialog {
         JTextField[] texts = {txtEmail, txtNom, txtPass};
         return texts;
     }
-
-    private AddUpdateUser(JFrame jFrame, boolean b) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -327,8 +321,7 @@ public class AddUpdateUser extends javax.swing.JDialog {
                     UtilSec.hashPass(txtPass.getText()), chbActi.isSelected(), chbAdmin.isSelected());
             so = UtilSec.encapsularObjeto(pubKAjena, u);//le mandamos el usuario
             UtilMsj.enviarObject(servidor, so);
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para evitar duplicados
-            boolean exist = (Boolean) UtilSec.desencriptarObjeto(so, privK);
+            boolean exist = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para evitar duplicados
             if (exist) {
                 lblError.setText("El email ya está registrado");
             } else {
@@ -351,8 +344,7 @@ public class AddUpdateUser extends javax.swing.JDialog {
                     UtilSec.hashPass(txtPass.getText()), chbActi.isSelected(), chbAdmin.isSelected());
             so = UtilSec.encapsularObjeto(pubKAjena, u);//le mandamos el usuario
             UtilMsj.enviarObject(servidor, so);
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para evitar duplicados
-            boolean canUpdate = (Boolean) UtilSec.desencriptarObjeto(so, privK);
+            boolean canUpdate = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para evitar duplicados
             if (!canUpdate) {
                 lblError.setText("No se ha podido modificar");
             } else {

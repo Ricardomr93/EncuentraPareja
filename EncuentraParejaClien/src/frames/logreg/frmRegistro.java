@@ -1,13 +1,10 @@
 package frames.logreg;
 
-import frames.*;
+
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
@@ -291,8 +288,7 @@ public class frmRegistro extends javax.swing.JFrame {
         User user = createUser();
         so = UtilSec.encapsularObjeto(pubKAjena, user);//con la clave publica del servidor
         UtilMsj.enviarObject(servidor, so);
-        so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para evitar duplicados
-        boolean exist = (Boolean) UtilSec.desencriptarObjeto(so, privK);
+        boolean exist = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para evitar duplicados
         if (exist) {
             lblError.setText("El email ya está registrado");
         } else {
