@@ -9,7 +9,6 @@ import java.awt.HeadlessException;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -87,8 +86,7 @@ public class dialogAdmin extends javax.swing.JDialog {
             //envia el mensaje de que esta en la ventana admin y que quiere la arraylist
             SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.ADMIN);
             UtilMsj.enviarObject(servidor, so);
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe la lista de usuarios
-            uList = (ArrayList<User>) UtilSec.desencriptarObjeto(so, privK);
+            uList = (ArrayList<User>) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe la lista de usuarios
         } catch (IOException | ClassNotFoundException | InvalidKeyException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
         }
     }
@@ -321,8 +319,7 @@ public class dialogAdmin extends javax.swing.JDialog {
                     UtilMsj.enviarObject(servidor, so);
                     so = UtilSec.encapsularObjeto(pubKAjena, uList.get(tblUsu.getSelectedRow()).getId());//le mandamos el usuario
                     UtilMsj.enviarObject(servidor, so);
-                    so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para ver si ha ido correcto
-                    boolean canDelete = (Boolean) UtilSec.desencriptarObjeto(so, privK);
+                    boolean canDelete = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para ver si ha ido correcto
                     if (!canDelete) {
                         JOptionPane.showMessageDialog(this, "Ha ocurrido un erro al borrar", "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
@@ -333,12 +330,8 @@ public class dialogAdmin extends javax.swing.JDialog {
                 }
             } catch (NullPointerException npe) {
                 rellenarDatos();
-            } catch (HeadlessException | IOException | InvalidKeyException | NoSuchAlgorithmException | IllegalBlockSizeException | NoSuchPaddingException e) {
-                System.out.println("error: " + e);
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(dialogAdmin.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (BadPaddingException ex) {
-                Logger.getLogger(dialogAdmin.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (HeadlessException | IOException | InvalidKeyException | NoSuchAlgorithmException | IllegalBlockSizeException | NoSuchPaddingException | ClassNotFoundException | BadPaddingException ex) {
+                System.out.println(ex.getMessage());
             }
         } else {
             JOptionPane.showMessageDialog(this, "Debes seleccionar una fila");
@@ -366,8 +359,7 @@ public class dialogAdmin extends javax.swing.JDialog {
                     UtilMsj.enviarObject(servidor, so);
                     so = UtilSec.encapsularObjeto(pubKAjena, uList.get(tblUsu.getSelectedRow()).getId());//le mandamos el id
                     UtilMsj.enviarObject(servidor, so);
-                    so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para ver si ha ido correcto
-                    boolean canActivate = (Boolean) UtilSec.desencriptarObjeto(so, privK);
+                    boolean canActivate = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para ver si ha ido correcto
                     if (!canActivate) {
                         JOptionPane.showMessageDialog(this, "Ha ocurrido un erro al activar", "Error", JOptionPane.ERROR_MESSAGE);
                     } else {

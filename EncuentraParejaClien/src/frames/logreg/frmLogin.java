@@ -4,8 +4,6 @@ import frames.*;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -236,11 +234,9 @@ public final class frmLogin extends javax.swing.JFrame {
                 UtilMsj.enviarObject(servidor, so);//manda 1 para logearse
                 so = UtilSec.encapsularObjeto(clavePubAjena, createUser());//envia user
                 UtilMsj.enviarObject(servidor, so);
-                so = (SealedObject) UtilMsj.recibirObjeto(servidor);
-                boolean valido = (Boolean) UtilSec.desencriptarObjeto(so, clavePrivada);
+                boolean valido = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, clavePrivada);
                 if (valido) {
-                    so = (SealedObject) UtilMsj.recibirObjeto(servidor);
-                    User user = (User) UtilSec.desencriptarObjeto(so, clavePrivada);
+                    User user = (User) UtilMsj.recibirObjetoCifrado(servidor, clavePrivada);
                     if (user.isActive()) {
                         frmMain main = new frmMain(servidor, clavePrivada, clavePublica, clavePubAjena, user);
                         main.setVisible(true);

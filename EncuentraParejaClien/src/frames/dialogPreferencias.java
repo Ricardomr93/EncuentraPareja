@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.net.*;
 import java.security.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.*;
 import javax.swing.JOptionPane;
 import model.Preferencia;
@@ -57,12 +55,9 @@ public class dialogPreferencias extends javax.swing.JDialog {
             SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.INS_PREF);//le mandamos la opcion
             UtilMsj.enviarObject(servidor, so);
             //lo primero será rellenar los comboBox con los datos de la bd
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para ver si ha ido correcto
-            ArrayList<String> relacion = (ArrayList<String>) UtilSec.desencriptarObjeto(so, privK);
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para ver si ha ido correcto
-            ArrayList<String> tqhijos = (ArrayList<String>) UtilSec.desencriptarObjeto(so, privK);
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para ver si ha ido correcto
-            ArrayList<String> interes = (ArrayList<String>) UtilSec.desencriptarObjeto(so, privK);
+            ArrayList<String> relacion = (ArrayList<String>) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe lista de relaciones
+            ArrayList<String> tqhijos = (ArrayList<String>) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe lista de quiere tiene hijos
+            ArrayList<String> interes = (ArrayList<String>) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe lista interes
             for (String string : relacion) {
                 cmbbRel.addItem(string);
             }
@@ -285,8 +280,7 @@ public class dialogPreferencias extends javax.swing.JDialog {
                     sliDepor.getValue(), sliPoli.getValue(), cmbbhijos.getSelectedItem().toString(), cmbbGenero.getSelectedItem().toString(), cmbbInteres.getSelectedItem().toString());
             SealedObject so = UtilSec.encapsularObjeto(pubKAjena, pref);//le mandos la preferencia
             UtilMsj.enviarObject(servidor, so);
-            so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para ver si ha ido correcto
-            boolean exist = (Boolean) UtilSec.desencriptarObjeto(so, privK);
+            boolean exist = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para ver si ha ido correcto
             if (!exist) {
                 this.setVisible(false);
             } else {

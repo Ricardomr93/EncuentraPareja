@@ -2,12 +2,21 @@ package util;
 
 import java.io.*;
 import java.net.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SealedObject;
 
 /**
  * @author Ricardo
  */
 public class UtilMsj {
- public static void enviarObject(Socket receptor, Object objeto){
+
+    public static void enviarObject(Socket receptor, Object objeto) {
         ObjectOutputStream oos;
         try {
             oos = new ObjectOutputStream(receptor.getOutputStream());
@@ -15,7 +24,16 @@ public class UtilMsj {
         } catch (IOException ex) {
         }
     }
-    
+    public static void enviarObjetoCifrado(Socket s, PublicKey pubk, Object o) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException {
+        SealedObject so = UtilSec.encapsularObjeto(pubk, o);
+        UtilMsj.enviarObject(s, so);//envia boolean
+    }
+
+    public static Object recibirObjetoCifrado(Socket s, PrivateKey pk) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, ClassNotFoundException, IllegalBlockSizeException, BadPaddingException {
+        SealedObject so = (SealedObject) UtilMsj.recibirObjeto(s);//recibe el usuario encapsulado
+        return UtilSec.desencriptarObjeto(so, pk);
+    }
+
     public static Object recibirObjeto(Socket receptor) {
 
         ObjectInputStream ois;
@@ -27,8 +45,8 @@ public class UtilMsj {
         }
         return objeto;
     }
-    
-     public static void enviarInt(Socket receptor, int opcion) {
+
+    public static void enviarInt(Socket receptor, int opcion) {
 
         DataOutputStream dos;
         try {
@@ -48,6 +66,7 @@ public class UtilMsj {
         }
         return opcion;
     }
+
     public static void enviarBoolean(Socket receptor, boolean opcion) {
 
         DataOutputStream dos;
