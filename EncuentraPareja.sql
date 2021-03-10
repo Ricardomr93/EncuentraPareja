@@ -28,6 +28,7 @@ CREATE TABLE `preferencia` (
   `deportivos` int,
   `politicos` int,
   `tqhijos` varchar(30),
+  `genero` varchar(30),
   `interes` varchar(30)
 );
 

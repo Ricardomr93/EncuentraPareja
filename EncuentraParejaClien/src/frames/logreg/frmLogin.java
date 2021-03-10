@@ -10,6 +10,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import model.User;
 import util.*;
@@ -231,23 +232,29 @@ public final class frmLogin extends javax.swing.JFrame {
             lblError.setText("Alguno de los campos vacíos");
         } else {
             try {
-                UtilMsj.enviarInt(servidor, Constantes.LOGIN);//manda 1 para logearse
-                SealedObject so = UtilSec.encapsularObjeto(clavePubAjena, createUser());//envia user
+                SealedObject so = UtilSec.encapsularObjeto(clavePubAjena, Constantes.LOGIN);//envia opcion
+                UtilMsj.enviarObject(servidor, so);//manda 1 para logearse
+                so = UtilSec.encapsularObjeto(clavePubAjena, createUser());//envia user
                 UtilMsj.enviarObject(servidor, so);
                 so = (SealedObject) UtilMsj.recibirObjeto(servidor);
-                boolean valido = (Boolean)UtilSec.desencriptarObjeto(so, clavePrivada);
+                boolean valido = (Boolean) UtilSec.desencriptarObjeto(so, clavePrivada);
                 if (valido) {
                     so = (SealedObject) UtilMsj.recibirObjeto(servidor);
-                    User user = (User)UtilSec.desencriptarObjeto(so, clavePrivada);
-                    frmMain main = new frmMain(servidor,clavePrivada,clavePublica,clavePubAjena,user);
-                    main.setVisible(true);
-                    this.setVisible(false);
-                }else{
+                    User user = (User) UtilSec.desencriptarObjeto(so, clavePrivada);
+                    if (user.isActive()) {
+                        frmMain main = new frmMain(servidor, clavePrivada, clavePublica, clavePubAjena, user);
+                        main.setVisible(true);
+                        this.setVisible(false);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Aun debe ser aprobado por un administrador");
+                    }
+                } else {
                     lblError.setText("Usuario o contraseña erroneos");
                 }
             } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | ClassNotFoundException | BadPaddingException ex) {
                 System.out.println(ex.getMessage());
             }
+
         }
     }//GEN-LAST:event_btnRegisActionPerformed
     private User createUser() throws NoSuchAlgorithmException {
