@@ -121,8 +121,8 @@ public class Mysql {
                     + "and (p.politicos BETWEEN (" + p.getPoliticos() + ") and (" + p.getPoliticos() + "+20) or p.politicos BETWEEN (" + p.getPoliticos() + "-20)and (" + p.getPoliticos() + ")) \n"
                     + "and (p.deportivos BETWEEN (" + p.getDeportivos() + ") and (" + p.getDeportivos() + "+20) or p.deportivos BETWEEN (" + p.getDeportivos() + "-20)and (" + p.getDeportivos() + ")) \n"
                     + "and tqhijos = '" + p.getTqhijos() + "'\n"
-                    + "and  (p.interes like (SELECT CONCAT(SUBSTR(pu.genero,1,1),'%') as gen\n"
-                    + "from preferencia pu where pu.id=" + u.getId() + ") or p.interes like 'Ambos')";
+                    + "and  p.interes like (SELECT CONCAT(SUBSTR(pu.genero,1,1),'%') as gen\n"
+                    + "from preferencia pu where pu.id=" + u.getId() + ") or u.id = "+u.getId()+" and p.interes like 'Ambos' ";
             sentencia = conexion.prepareStatement(sql);
             sentencia.setBoolean(1, p.isArtisticos());
             res = sentencia.executeQuery();
@@ -159,7 +159,30 @@ public class Mysql {
         }
         return list;
     }
-
+    public synchronized boolean UpdatePrefs(Preferencia pref){
+        boolean error = false;
+        connect();
+        try {
+            String sql = "update preferencia set relacion=?,artisticos=?,deportivos =?,politicos=?,tqhijos=?,genero=?,interes=? where id=?";
+            sentencia = conexion.prepareStatement(sql);
+            sentencia.setString(1, pref.getRelacion());
+            sentencia.setBoolean(2, pref.isArtisticos());
+            sentencia.setInt(3, pref.getDeportivos());
+            sentencia.setInt(4, pref.getPoliticos());
+            sentencia.setString(5, pref.getTqhijos());
+            sentencia.setString(6, pref.getGenero());
+            sentencia.setString(7, pref.getInteres());
+            sentencia.setInt(8, pref.getId());
+            sentencia.executeUpdate();
+            sentencia.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            error = true;
+        } finally {
+            disconnect();
+        }
+        return error;
+    }
     public synchronized Preferencia selectPrefes(int id) {
         Preferencia p = null;
         try {
@@ -393,9 +416,11 @@ public class Mysql {
         User u;
         try {
             connect();
-            String sql = "SELECT * FROM usuario u join amigo a on u.id = a.idEnv or u.id = a.idRec where u.id != ? and a.aceptado=true";
+            String sql = "SELECT * FROM usuario u join amigo a on u.id = a.idEnv or u.id = a.idRec where u.id != ? and (a.idEnv = ? or a.idRec = ?) and a.aceptado=true";
             sentencia = conexion.prepareStatement(sql);
             sentencia.setInt(1, id);
+            sentencia.setInt(2, id);
+            sentencia.setInt(3, id);
             res = sentencia.executeQuery();
             while (res.next()) {
                 String name = res.getString("nombre");

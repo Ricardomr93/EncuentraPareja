@@ -13,7 +13,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import model.User;
@@ -64,6 +63,7 @@ public class AddUpdateUser extends javax.swing.JDialog {
         if (opc == Constantes.OPC_INSERTAR) {
             lblTit.setText("Añadir Usuario");
             btnRegis.setText("Añadir");
+            rellenarDatos();
         } else {
             lblTit.setText("Modificar Usuario");
             btnRegis.setText("Modificar");

@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.*;
 import java.security.*;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.*;
 import javax.swing.JOptionPane;
 import model.Preferencia;
@@ -27,6 +29,8 @@ public class dialogPreferencias extends javax.swing.JDialog {
     private PublicKey pubK;
     private PublicKey pubKAjena;
     private int id;
+    private Preferencia pref;
+    private int opc;
 
     /**
      * Creates new form dialogPreferencias
@@ -39,7 +43,7 @@ public class dialogPreferencias extends javax.swing.JDialog {
      * @param pubK
      * @param pubKAjena
      */
-    public dialogPreferencias(java.awt.Frame parent, boolean modal, int id, Socket servidor, PrivateKey privK, PublicKey pubK, PublicKey pubKAjena) {
+    public dialogPreferencias(java.awt.Frame parent, boolean modal, int id, Socket servidor, PrivateKey privK, PublicKey pubK, PublicKey pubKAjena, Preferencia pref) {
         super(parent, modal);
         initComponents();
         this.servidor = servidor;
@@ -47,13 +51,32 @@ public class dialogPreferencias extends javax.swing.JDialog {
         this.pubK = pubK;
         this.pubKAjena = pubKAjena;
         this.id = id;
+        this.pref = pref;
         RellenarCombobox();
+        if (pref != null) {
+            opc = 1;//opcion de modificado
+            completarCampos();
+        } else {
+            opc = 0; //opcion por defecto cuando entras por primera vez
+            btnAtras.setVisible(false);
+        }
     }
+
+    private void completarCampos() {
+        cmbbGenero.setSelectedItem(pref.getGenero());
+        cmbbInteres.setSelectedItem(pref.getInteres());
+        cmbbRel.setSelectedItem(pref.getRelacion());
+        cmbbhijos.setSelectedItem(pref.getTqhijos());
+        sliDepor.setValue(pref.getDeportivos());
+        sliPoli.setValue(pref.getPoliticos());
+        chbArt.setSelected(pref.isArtisticos());
+        btnConfirmar.setText("Modificar");
+    }
+
+
 
     private void RellenarCombobox() {
         try {
-            SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.INS_PREF);//le mandamos la opcion
-            UtilMsj.enviarObject(servidor, so);
             //lo primero será rellenar los comboBox con los datos de la bd
             ArrayList<String> relacion = (ArrayList<String>) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe lista de relaciones
             ArrayList<String> tqhijos = (ArrayList<String>) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe lista de quiere tiene hijos
@@ -99,6 +122,7 @@ public class dialogPreferencias extends javax.swing.JDialog {
         btnConfirmar = new javax.swing.JButton();
         lblInteres1 = new javax.swing.JLabel();
         cmbbGenero = new javax.swing.JComboBox<>();
+        btnAtras = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setUndecorated(true);
@@ -174,6 +198,16 @@ public class dialogPreferencias extends javax.swing.JDialog {
 
         cmbbGenero.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Hombre", "Mujer" }));
 
+        btnAtras.setBackground(new java.awt.Color(255, 51, 51));
+        btnAtras.setForeground(new java.awt.Color(255, 255, 255));
+        btnAtras.setText("Atras");
+        btnAtras.setBorder(null);
+        btnAtras.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAtrasActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout pnlprinLayout = new javax.swing.GroupLayout(pnlprin);
         pnlprin.setLayout(pnlprinLayout);
         pnlprinLayout.setHorizontalGroup(
@@ -185,23 +219,28 @@ public class dialogPreferencias extends javax.swing.JDialog {
                         .addComponent(lblTitloh, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlprinLayout.createSequentialGroup()
-                        .addGap(20, 20, 20)
-                        .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(pnlprinLayout.createSequentialGroup()
-                                    .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(lblHijos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(lblPoli, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(lblRel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(lblArti, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(lblDeportivos1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                    .addGap(32, 32, 32))
-                                .addGroup(pnlprinLayout.createSequentialGroup()
-                                    .addComponent(lblInteres1)
-                                    .addGap(60, 60, 60)))
+                        .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(pnlprinLayout.createSequentialGroup()
-                                .addComponent(lblInteres)
-                                .addGap(60, 60, 60)))
+                                .addGap(20, 20, 20)
+                                .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(pnlprinLayout.createSequentialGroup()
+                                            .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(lblHijos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(lblPoli, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(lblRel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(lblArti, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(lblDeportivos1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                            .addGap(32, 32, 32))
+                                        .addGroup(pnlprinLayout.createSequentialGroup()
+                                            .addComponent(lblInteres1)
+                                            .addGap(60, 60, 60)))
+                                    .addGroup(pnlprinLayout.createSequentialGroup()
+                                        .addComponent(lblInteres)
+                                        .addGap(60, 60, 60))))
+                            .addGroup(pnlprinLayout.createSequentialGroup()
+                                .addComponent(btnAtras, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(63, 63, 63)))
                         .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(cmbbGenero, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(cmbbhijos, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -251,7 +290,9 @@ public class dialogPreferencias extends javax.swing.JDialog {
                     .addComponent(lblInteres, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmbbInteres, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
-                .addComponent(btnConfirmar, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(btnConfirmar, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnAtras, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(29, Short.MAX_VALUE))
             .addGroup(pnlprinLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(pnlprinLayout.createSequentialGroup()
@@ -275,23 +316,58 @@ public class dialogPreferencias extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnConfirmarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarActionPerformed
+        String msj = "";
+        if (opc == 0) {
+            msj = "crear";
+        } else {
+            msj = "modificar";
+        }
         try {
-            Preferencia pref = new Preferencia(id, cmbbRel.getSelectedItem().toString(), chbArt.isSelected(),
-                    sliDepor.getValue(), sliPoli.getValue(), cmbbhijos.getSelectedItem().toString(), cmbbGenero.getSelectedItem().toString(), cmbbInteres.getSelectedItem().toString());
-            SealedObject so = UtilSec.encapsularObjeto(pubKAjena, pref);//le mandos la preferencia
-            UtilMsj.enviarObject(servidor, so);
+            if (opc == 1) {
+                SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.EDIT_PREFE);//le mandos la preferencia
+                UtilMsj.enviarObject(servidor, so);
+                mandaPrefs();
+            } else {
+                mandaPrefs();
+            }
+
             boolean exist = (Boolean) UtilMsj.recibirObjetoCifrado(servidor, privK);//recibe mensaje para ver si ha ido correcto
             if (!exist) {
+                if (opc == 1) {
+                    JOptionPane.showMessageDialog(this, "Preferencias modificadas con exito");
+                }
                 this.setVisible(false);
             } else {
-                JOptionPane.showMessageDialog(this, "Ha ocurrido un erro al borrar", "Error", JOptionPane.ERROR_MESSAGE);
+
+                JOptionPane.showMessageDialog(this, "Ha ocurrido un error al " + msj, "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | ClassNotFoundException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
         }
     }//GEN-LAST:event_btnConfirmarActionPerformed
+    private void mandaPrefs() {
+        try {
+            Preferencia pref = new Preferencia(id, cmbbRel.getSelectedItem().toString(), chbArt.isSelected(),
+                    sliDepor.getValue(), sliPoli.getValue(), cmbbhijos.getSelectedItem().toString(), cmbbGenero.getSelectedItem().toString(), cmbbInteres.getSelectedItem().toString());
+            SealedObject so = UtilSec.encapsularObjeto(pubKAjena, pref);//le mandos la preferencia
+            UtilMsj.enviarObject(servidor, so);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+    private void btnAtrasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAtrasActionPerformed
+        try {
+            SealedObject so = UtilSec.encapsularObjeto(pubKAjena, Constantes.CERRAR);//le mandamos la opcion
+            UtilMsj.enviarObject(servidor, so);
+            this.setVisible(false);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+    }//GEN-LAST:event_btnAtrasActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAtras;
     private javax.swing.JButton btnConfirmar;
     private javax.swing.JCheckBox chbArt;
     private javax.swing.JComboBox<String> cmbbGenero;

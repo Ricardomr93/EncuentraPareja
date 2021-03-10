@@ -1,100 +1,161 @@
-CREATE TABLE `usuario` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `nombre` varchar(30),
-  `email` varchar(30),
-  `password` varchar(255),
-  `activado` boolean DEFAULT false,
-  `admin` boolean DEFAULT false
-);
+/*
+ Navicat Premium Data Transfer
 
-CREATE TABLE `perfil` (
-  `nick` varchar(30),
-  `bio` varchar(255),
-  `foto` blob,
-  `iduser` int
-);
+ Source Server         : MySQL
+ Source Server Type    : MySQL
+ Source Server Version : 100129
+ Source Host           : localhost:3306
+ Source Schema         : encuentrapareja
 
-CREATE TABLE `amigo` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `idEnv` int,
-  `idRec` int,
-  `aceptado` boolean
-);
+ Target Server Type    : MySQL
+ Target Server Version : 100129
+ File Encoding         : 65001
 
-CREATE TABLE `preferencia` (
-  `id` int,
-  `relacion` varchar(30),
-  `artisticos` boolean,
-  `deportivos` int,
-  `politicos` int,
-  `tqhijos` varchar(30),
-  `genero` varchar(30),
-  `interes` varchar(30)
-);
+ Date: 10/03/2021 23:21:35
+*/
 
-CREATE TABLE `tqhijos` (
-  `hijos` varchar(30) PRIMARY KEY NOT NULL
-);
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
-CREATE TABLE `relacion` (
-  `relacion` varchar(30) PRIMARY KEY NOT NULL
-);
+-- ----------------------------
+-- Table structure for amigo
+-- ----------------------------
+DROP TABLE IF EXISTS `amigo`;
+CREATE TABLE `amigo`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `idEnv` int NULL DEFAULT NULL,
+  `idRec` int NULL DEFAULT NULL,
+  `aceptado` tinyint(1) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idRec`(`idRec`) USING BTREE,
+  INDEX `idEnv`(`idEnv`) USING BTREE,
+  CONSTRAINT `amigo_ibfk_1` FOREIGN KEY (`idRec`) REFERENCES `usuario` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `amigo_ibfk_2` FOREIGN KEY (`idEnv`) REFERENCES `usuario` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-CREATE TABLE `interes` (
-  `interes` varchar(30) PRIMARY KEY NOT NULL
-);
+-- ----------------------------
+-- Table structure for archivo
+-- ----------------------------
+DROP TABLE IF EXISTS `archivo`;
+CREATE TABLE `archivo`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `archivo` varchar(200) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-CREATE TABLE `mensaje` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `iduser` int,
-  `idrem` int,
-  `mensaje` varchar(300)
-);
+-- ----------------------------
+-- Table structure for interes
+-- ----------------------------
+DROP TABLE IF EXISTS `interes`;
+CREATE TABLE `interes`  (
+  `interes` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  PRIMARY KEY (`interes`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-CREATE TABLE `mensajearchivo` (
-  `idmensaje` int,
-  `idarchivo` int
-);
+-- ----------------------------
+-- Table structure for mensaje
+-- ----------------------------
+DROP TABLE IF EXISTS `mensaje`;
+CREATE TABLE `mensaje`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `iduser` int NULL DEFAULT NULL,
+  `idrem` int NULL DEFAULT NULL,
+  `mensaje` varchar(300) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-CREATE TABLE `archivo` (
-  `id` int PRIMARY KEY AUTO_INCREMENT,
-  `archivo` varchar(200)
-);
+-- ----------------------------
+-- Table structure for mensajearchivo
+-- ----------------------------
+DROP TABLE IF EXISTS `mensajearchivo`;
+CREATE TABLE `mensajearchivo`  (
+  `idmensaje` int NOT NULL,
+  `idarchivo` int NOT NULL,
+  PRIMARY KEY (`idmensaje`, `idarchivo`) USING BTREE,
+  INDEX `idarchivo`(`idarchivo`) USING BTREE,
+  CONSTRAINT `mensajearchivo_ibfk_1` FOREIGN KEY (`idmensaje`) REFERENCES `mensaje` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `mensajearchivo_ibfk_2` FOREIGN KEY (`idarchivo`) REFERENCES `archivo` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-CREATE TABLE `usuariomensaje` (
-  `iduser` int,
-  `idmensaje` int
-);
+-- ----------------------------
+-- Table structure for perfil
+-- ----------------------------
+DROP TABLE IF EXISTS `perfil`;
+CREATE TABLE `perfil`  (
+  `nick` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  `bio` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  `foto` blob NULL,
+  `iduser` int NOT NULL,
+  PRIMARY KEY (`iduser`) USING BTREE,
+  CONSTRAINT `perfil_ibfk_1` FOREIGN KEY (`iduser`) REFERENCES `usuario` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-ALTER TABLE `usuariomensaje` ADD FOREIGN KEY (`idmensaje`) REFERENCES `mensaje` (`id`);
+-- ----------------------------
+-- Table structure for preferencia
+-- ----------------------------
+DROP TABLE IF EXISTS `preferencia`;
+CREATE TABLE `preferencia`  (
+  `id` int NOT NULL,
+  `relacion` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  `artisticos` tinyint(1) NULL DEFAULT NULL,
+  `deportivos` int NULL DEFAULT NULL,
+  `politicos` int NULL DEFAULT NULL,
+  `tqhijos` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  `genero` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  `interes` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `interes`(`interes`) USING BTREE,
+  INDEX `relacion`(`relacion`) USING BTREE,
+  INDEX `tqhijos`(`tqhijos`) USING BTREE,
+  CONSTRAINT `preferencia_ibfk_1` FOREIGN KEY (`id`) REFERENCES `usuario` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `preferencia_ibfk_2` FOREIGN KEY (`interes`) REFERENCES `interes` (`interes`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `preferencia_ibfk_3` FOREIGN KEY (`relacion`) REFERENCES `relacion` (`relacion`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `preferencia_ibfk_4` FOREIGN KEY (`tqhijos`) REFERENCES `tqhijos` (`hijos`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-ALTER TABLE `usuariomensaje` ADD FOREIGN KEY (`iduser`) REFERENCES `usuario` (`id`);
+-- ----------------------------
+-- Table structure for relacion
+-- ----------------------------
+DROP TABLE IF EXISTS `relacion`;
+CREATE TABLE `relacion`  (
+  `relacion` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  PRIMARY KEY (`relacion`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-ALTER TABLE `mensajearchivo` ADD FOREIGN KEY (`idmensaje`) REFERENCES `mensaje` (`id`);
+-- ----------------------------
+-- Table structure for tqhijos
+-- ----------------------------
+DROP TABLE IF EXISTS `tqhijos`;
+CREATE TABLE `tqhijos`  (
+  `hijos` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  PRIMARY KEY (`hijos`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-ALTER TABLE `mensajearchivo` ADD FOREIGN KEY (`idarchivo`) REFERENCES `archivo` (`id`);
+-- ----------------------------
+-- Table structure for usuario
+-- ----------------------------
+DROP TABLE IF EXISTS `usuario`;
+CREATE TABLE `usuario`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  `email` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
+  `activado` tinyint(1) NULL DEFAULT 0,
+  `admin` tinyint(1) NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-ALTER TABLE `preferencia` ADD FOREIGN KEY (`id`) REFERENCES `usuario` (`id`);
+-- ----------------------------
+-- Table structure for usuariomensaje
+-- ----------------------------
+DROP TABLE IF EXISTS `usuariomensaje`;
+CREATE TABLE `usuariomensaje`  (
+  `iduser` int NOT NULL,
+  `idmensaje` int NOT NULL,
+  PRIMARY KEY (`iduser`, `idmensaje`) USING BTREE,
+  INDEX `idmensaje`(`idmensaje`) USING BTREE,
+  CONSTRAINT `usuariomensaje_ibfk_1` FOREIGN KEY (`idmensaje`) REFERENCES `mensaje` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `usuariomensaje_ibfk_2` FOREIGN KEY (`iduser`) REFERENCES `usuario` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Compact;
 
-ALTER TABLE `preferencia` ADD FOREIGN KEY (`interes`) REFERENCES `interes` (`interes`);
-
-ALTER TABLE `preferencia` ADD FOREIGN KEY (`relacion`) REFERENCES `relacion` (`relacion`);
-
-ALTER TABLE `preferencia` ADD FOREIGN KEY (`tqhijos`) REFERENCES `tqhijos` (`hijos`);
-
-ALTER TABLE `perfil` ADD FOREIGN KEY (`iduser`) REFERENCES `usuario` (`id`);
-
-ALTER TABLE `amigo` ADD FOREIGN KEY (`idRec`) REFERENCES `usuario` (`id`);
-
-ALTER TABLE `amigo` ADD FOREIGN KEY (`idEnv`) REFERENCES `usuario` (`id`);
-
-INSERT INTO relacion VALUES ("Seria");
-INSERT INTO relacion VALUES ("Esporadica");
-INSERT INTO tqhijos VALUES ("Tiene hijos");
-INSERT INTO tqhijos VALUES ("Quiere hijos");
-INSERT INTO tqhijos VALUES ("No tiene hijos");
-INSERT INTO tqhijos VALUES ("No quiere hijos");
-INSERT INTO interes VALUES ("Hombres");
-INSERT INTO interes VALUES ("Mujeres");
-INSERT INTO interes VALUES ("Ambos");
-INSERT INTO usuario VALUES (1,"Ricardo","ricar@gmail.com","40bd001563085fc35165329ea1ff5c5ecbdbbeef",1,1);
+SET FOREIGN_KEY_CHECKS = 1;

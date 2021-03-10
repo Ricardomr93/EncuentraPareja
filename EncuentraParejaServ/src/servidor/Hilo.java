@@ -67,33 +67,30 @@ public class Hilo extends Thread {
                 }
             } else {
                 so = UtilSec.encapsularObjeto(pubKCAjena, false);//no existe
+                UtilMsj.enviarObject(cliente, so);
             }
-            //despues de comprobar envia el estado
-            UtilMsj.enviarObject(cliente, so);//envia boolean 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
         }
     }
-
-    private void regUser() {
-        SealedObject so = null;
-        try {
-            //quiere registrarse
-            User u = (User) UtilMsj.recibirObjetoCifrado(cliente, privK);
-            //inserta el usuario en la base de datos y devuelve si ha sido correcto o no
-            boolean exist = bd.RegisUser(u.getName(), u.getEmail(), u.getPass());
-            so = UtilSec.encapsularObjeto(pubKCAjena, exist);
-            UtilMsj.enviarObject(cliente, so);//envia boolean
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-
     private void mandarUser(User u) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException {
         SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, true);//existe en bd
         UtilMsj.enviarObject(cliente, so);
         so = UtilSec.encapsularObjeto(pubKCAjena, u);
         UtilMsj.enviarObject(cliente, so);
+    }
+
+    private void regUser() {
+        try {
+            //quiere registrarse
+            User u = (User) UtilMsj.recibirObjetoCifrado(cliente, privK);
+            //inserta el usuario en la base de datos y devuelve si ha sido correcto o no
+            boolean exist = bd.RegisUser(u.getName(), u.getEmail(), u.getPass());
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, exist);
+            UtilMsj.enviarObject(cliente, so);//envia boolean
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
+        }
     }
 
     private void generarPrivPub() {
@@ -143,6 +140,10 @@ public class Hilo extends Thread {
                         System.out.println(msj);
                         listaAmigos();
                         break;
+                    case Constantes.EDIT_PREFE:
+                        System.out.println(msj);
+                        editPref();
+                        break;
                     default:
                         throw new AssertionError();
                 }
@@ -154,6 +155,33 @@ public class Hilo extends Thread {
             cliente.close();
             System.out.println("Se cierra el canal");
         } catch (IOException e) {
+        }
+
+    }
+
+    private void editPref() {
+        try {
+            int id = (int) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibe el id
+            Preferencia pref = bd.selectPrefes(id);
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, pref);//se envian las prefs
+            UtilMsj.enviarObject(cliente, so);
+            mandarCmbb();
+            String msj = (String) UtilMsj.recibirObjetoCifrado(cliente, privK);
+            switch (msj) {
+                case Constantes.CERRAR:
+                    break;
+                case Constantes.EDIT_PREFE:
+                    pref = (Preferencia) UtilMsj.recibirObjetoCifrado(cliente, privK);
+                    boolean error = bd.UpdatePrefs(pref);
+                    so = UtilSec.encapsularObjeto(pubKCAjena, error);//se envia si ha dado error
+                    UtilMsj.enviarObject(cliente, so);
+                    break;
+                default:
+
+            }
+
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
         }
 
     }
@@ -213,7 +241,7 @@ public class Hilo extends Thread {
         }
     }
 
-    private void insertarPref() {
+    private void mandarCmbb() {
         try {
             ArrayList<String> rel = bd.relacion();
             ArrayList<String> tqhijos = bd.hijos();
@@ -224,10 +252,18 @@ public class Hilo extends Thread {
             UtilMsj.enviarObject(cliente, so);
             so = UtilSec.encapsularObjeto(pubKCAjena, interes);//le mandamos lista de interes
             UtilMsj.enviarObject(cliente, so);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    private void insertarPref() {
+        try {
+            mandarCmbb();
             //una vez mandados los cmbbs espera a recibir la preferencia
             Preferencia pref = (Preferencia) UtilMsj.recibirObjetoCifrado(cliente, privK);//recibirá un objeto preferencia
             boolean exists = bd.insertPrefs(pref);
-            so = UtilSec.encapsularObjeto(pubKCAjena, exists);//le mandamos si existe
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, exists);//le mandamos si existe
             UtilMsj.enviarObject(cliente, so);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | ClassNotFoundException | BadPaddingException ex) {
             System.out.println(ex.getMessage());
