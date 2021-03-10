@@ -11,6 +11,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
+import javax.swing.table.DefaultTableModel;
+import model.Preferencia;
 import model.User;
 import util.*;
 
@@ -33,25 +35,25 @@ public class Hilo extends Thread {
     @Override
     public void run() {
         System.out.println("Recibiendo nuevo cliente");
-        boolean valide = false;
-        User u;
         generarPrivPub();//genera las claves
         recMandPub();
         while (true) {
             try {
-                int opc = UtilMsj.recibirInt(cliente);//recibe la opcion (1)login / (2)registrarse
+                SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe la opcion encapsulado
+                int opc = (int) UtilSec.desencriptarObjeto(so, privK);
                 if (opc == Constantes.LOGIN) {
+                    System.out.println(Constantes.LOGIN);
                     logUser();
                 } else {
+                    System.out.println(Constantes.REGISTRAR);
                     regUser();
                 }
-            } catch (Exception e) {
+            } catch (NullPointerException | IOException | ClassNotFoundException | InvalidKeyException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException e) {
                 try {
                     cliente.close();
                 } catch (IOException ex) {
                 }
             }
-
         }
     }
 
@@ -62,7 +64,9 @@ public class Hilo extends Thread {
             u = bd.selectUser(u.getEmail(), u.getPass());
             if (u != null) {
                 mandarUser(u);
-                ventanaPrincipal();
+                if (u.isActive()) {
+                    ventanaPrincipal();
+                }
             } else {
                 so = UtilSec.encapsularObjeto(pubKCAjena, false);//no existe
             }
@@ -118,12 +122,73 @@ public class Hilo extends Thread {
                         System.out.println(msj);
                         admin();
                         break;
+                    case Constantes.PRIMERA_VEZ:
+                        System.out.println(msj);
+                        prefPrimera();
+                        break;
+                    case Constantes.INS_PREF:
+                        System.out.println(msj);
+                        insertarPref();
+                        break;
+                    case Constantes.MOSTR_PREFS:
+                        System.out.println(msj);
+                        mostrarprefs();
+                        break;
                     default:
                         throw new AssertionError();
                 }
             } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
                 System.out.println(ex.getMessage());
             }
+        }
+    }
+
+    private void mostrarprefs() {
+        try {
+            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibe el usuario
+            User us = (User) UtilSec.desencriptarObjeto(so, privK);
+            Preferencia p = bd.selectPrefes(us.getId());
+            if (p != null) {
+                ArrayList<ArrayList<Object>> list = bd.mismasPref(us, p);
+                so = UtilSec.encapsularObjeto(pubKCAjena, list);//le mandamo la lista de usuarios con prefs parecidas
+                UtilMsj.enviarObject(cliente, so);
+            }
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    private void insertarPref() {
+        try {
+            ArrayList<String> rel = bd.relacion();
+            ArrayList<String> tqhijos = bd.hijos();
+            ArrayList<String> interes = bd.interes();
+            SealedObject so = UtilSec.encapsularObjeto(pubKCAjena, rel);//le mandamos lista de relaciones
+            UtilMsj.enviarObject(cliente, so);
+            so = UtilSec.encapsularObjeto(pubKCAjena, tqhijos);//le mandamos lista de si quiere o no hijos
+            UtilMsj.enviarObject(cliente, so);
+            so = UtilSec.encapsularObjeto(pubKCAjena, interes);//le mandamos lista de interes
+            UtilMsj.enviarObject(cliente, so);
+            //una vez mandados los cmbbs espera a recibir la preferencia
+            so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un objeto preferencia
+            Preferencia pref = (Preferencia) UtilSec.desencriptarObjeto(so, privK);
+            boolean exists = bd.insertPrefs(pref);
+            so = UtilSec.encapsularObjeto(pubKCAjena, exists);//le mandamos si existe
+            UtilMsj.enviarObject(cliente, so);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | ClassNotFoundException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    private void prefPrimera() {
+        try {
+            SealedObject so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un mensaje y le dira su id
+            int id = (int) UtilSec.desencriptarObjeto(so, privK);
+            boolean tienePrefs = bd.primeraVez(id);
+            so = UtilSec.encapsularObjeto(pubKCAjena, tienePrefs);//le mandamos si es la primera vez o no
+            UtilMsj.enviarObject(cliente, so);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {
+            System.out.println(ex.getMessage());
         }
     }
 
@@ -179,7 +244,7 @@ public class Hilo extends Thread {
             int id = (int) UtilSec.desencriptarObjeto(so, privK);
             so = (SealedObject) UtilMsj.recibirObjeto(cliente);//recibirá un boolean de si quiere quitar/poner admin
             boolean admin = (boolean) UtilSec.desencriptarObjeto(so, privK);
-            boolean canModAdmin = bd.actDesAdminUser(id,admin);
+            boolean canModAdmin = bd.actDesAdminUser(id, admin);
             so = UtilSec.encapsularObjeto(pubKCAjena, canModAdmin);
             UtilMsj.enviarObject(cliente, so);//envia boolean
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | ClassNotFoundException | IllegalBlockSizeException | BadPaddingException ex) {

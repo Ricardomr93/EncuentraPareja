@@ -286,9 +286,10 @@ public class frmRegistro extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnRegisActionPerformed
     private void sendUser() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, ClassNotFoundException, BadPaddingException {
-        UtilMsj.enviarInt(servidor, Constantes.REGISTRAR);
+        SealedObject so = UtilSec.encapsularObjeto(pubKAjena, createUser());//envia opcion
+        UtilMsj.enviarObject(servidor, so);//manda 2 para registrarse
         User user = createUser();
-        SealedObject so = UtilSec.encapsularObjeto(pubKAjena, user);//con la clave publica del servidor
+        so = UtilSec.encapsularObjeto(pubKAjena, user);//con la clave publica del servidor
         UtilMsj.enviarObject(servidor, so);
         so = (SealedObject) UtilMsj.recibirObjeto(servidor);//recibe mensaje para evitar duplicados
         boolean exist = (Boolean) UtilSec.desencriptarObjeto(so, privK);
